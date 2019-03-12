@@ -91,7 +91,7 @@
                 <use>standard</use>
                 <args>
                     <module>Billmate_CustomPay</module>
-                    <frontName>cardpay</frontName>
+                    <frontName>custompay</frontName>
                 </args>
             </billmatecustompay>
         </routers>

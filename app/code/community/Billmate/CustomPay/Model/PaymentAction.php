@@ -7,15 +7,15 @@ class Billmate_CustomPay_Model_PaymentAction
      */
     public function toOptionArray()
     {
-        return array(
-            array(
+        return [
+            [
                 'value' => 'authorize',
-                'label' => Mage::helper('billmatecardpay')->__('Authorize Only')
-            ),
-            array(
+                'label' => Mage::helper('billmatecustompay')->__('Authorize Only')
+            ],
+            [
                 'value' => 'sale',
-                'label' => Mage::helper('billmatecardpay')->__('Sale')
-            ),
-        );
+                'label' => Mage::helper('billmatecustompay')->__('Sale')
+            ],
+        ];
     }
 }

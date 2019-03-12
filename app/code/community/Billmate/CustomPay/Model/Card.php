@@ -1,8 +1,9 @@
 <?php
 class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
 {
-    protected $_code = 'billmatecardpay';
-    protected $_formBlockType = 'billmatecardpay/form';
+    protected $_code = 'bmcustom_card';
+
+    protected $_formBlockType = 'billmatecustompay/card_form';
     
     protected $_isGateway               = false;
     protected $_canAuthorize            = true;
@@ -25,7 +26,6 @@ class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
 
     public function cancel( Varien_Object $payment )
     {
-
         $this->void($payment);
         return $this;
     }
@@ -33,7 +33,7 @@ class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
     public function void( Varien_Object $payment )
     {
         if(Mage::getStoreConfig('billmate/settings/activation')) {
-            $k = Mage::helper('billmatecardpay')->getBillmate();
+            $k = Mage::helper('billmatecustompay')->getBillmate();
             $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
             $values = array(
                 'number' => $invoiceId
@@ -65,22 +65,30 @@ class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
             return $this;
         }
     }
+
     public function canUseForCurrency($currencyCode)
     {
         return true;
     }
+
     public function isAvailable($quote = null)
     {
-        if($quote == null ) return false;
-        if(Mage::getSingleton('checkout/session')->getBillmateHash()) return true;
+        if(is_null($quote) ) {
+            return false;
+        }
+        if(Mage::getSingleton('checkout/session')->getBillmateHash()) {
+            return true;
+        }
 
-        if( Mage::getStoreConfig('payment/billmatecardpay/active') != 1 ) return false;
-        $countries = explode(',', Mage::getStoreConfig('payment/billmatecardpay/countries'));	
+        if (!$this->getHelper()->isActivePayment($this->getCode())) {
+            return false;
+        }
+        $countries = explode(',', Mage::getStoreConfig('payment/bmcustom_card/countries'));
         if( in_array($quote->getShippingAddress()->getCountry(), $countries ) ){
 
             $total = $quote->getSubtotal();
-			$min_total = Mage::getStoreConfig('payment/billmatecardpay/min_amount');
-			$max_total = Mage::getStoreConfig('payment/billmatecardpay/max_amount');
+			$min_total = Mage::getStoreConfig('payment/bmcustom_card/min_amount');
+			$max_total = Mage::getStoreConfig('payment/bmcustom_card/max_amount');
             
             if(!empty($min_total) && $min_total > 0){
                 
@@ -101,8 +109,8 @@ class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
 
     public function capture(Varien_Object $payment, $amount)
     {
-        if(Mage::getStoreConfig('billmate/settings/activation') && Mage::getStoreConfig('payment/billmatecardpay/payment_action') == 'authorize') {
-            $k = Mage::helper('billmatecardpay')->getBillmate();
+        if(Mage::getStoreConfig('billmate/settings/activation') && Mage::getStoreConfig('payment/bmcustom_card/payment_action') == 'authorize') {
+            $k = Mage::helper('billmatecustompay')->getBillmate();
             $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
             $values = array(
                 'number' => $invoiceId
@@ -111,7 +119,7 @@ class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
             if (is_array($paymentInfo) && $paymentInfo['PaymentData']['status'] == 'Created') {
                 $boTotal = $paymentInfo['Cart']['Total']['withtax']/100;
                 if($amount != $boTotal){
-                    Mage::throwException(Mage::helper('billmatecardpay')->__('The amounts don\'t match. Billmate Online %s and Store %s. Activate manually in Billmate.',$boTotal,$amount));
+                    Mage::throwException(Mage::helper('billmatecustompay')->__('The amounts don\'t match. Billmate Online %s and Store %s. Activate manually in Billmate.',$boTotal,$amount));
                 }
                 $result = $k->activatePayment(array('PaymentData' => $values));
                 if(isset($result['code']) )
@@ -135,7 +143,7 @@ class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
     public function refund(Varien_Object $payment, $amount)
     {
         if(Mage::getStoreConfig('billmate/settings/activation')) {
-            $k = Mage::helper('billmatecardpay')->getBillmate();
+            $k = Mage::helper('billmatecustompay')->getBillmate();
             $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
             $values = array(
                 'number' => $invoiceId
@@ -166,8 +174,9 @@ class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
         return Mage::getSingleton('checkout/session');
     }
 
-    public function getTitle(){
-        return (strlen(Mage::getStoreConfig('payment/billmatecardpay/title')) > 0) ? Mage::helper('billmatecardpay')->__(Mage::getStoreConfig('payment/billmatecardpay/title')) : Mage::helper('billmatecardpay')->__('Billmate Card');
+    public function getTitle()
+    {
+        return (strlen(Mage::getStoreConfig('payment/bmcustom_card/title')) > 0) ? Mage::helper('billmatecustompay')->__(Mage::getStoreConfig('payment/bmcustom_card/title')) : Mage::helper('billmatecustompay')->__('Billmate Card');
     }
 
     public function getCheckoutRedirectUrl()
@@ -176,9 +185,17 @@ class Billmate_CustomPay_Model_Card extends Mage_Payment_Model_Method_Abstract
         $session->setBillmateQuoteId($session->getQuoteId());
         $session->setRebuildCart(true);
 
-        $gateway = Mage::getSingleton('billmatecustompay/gateway');
+        $gateway = Mage::getSingleton('billmatecustompay/gateway_card');
         $result = $gateway->makePayment();
         
         return $result['url'];
+    }
+
+    /**
+     * @return Billmate_CustomPay_Helper_Data
+     */
+    public function getHelper()
+    {
+        return Mage::helper('billmatecustompay');
     }
 }
