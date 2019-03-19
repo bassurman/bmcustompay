@@ -42,10 +42,23 @@
     </global>
     <default>
         <payment>
-            <bmcustom_card>
-                <model>billmatecustompay/card</model>
+            <bmcustom_invoice>
+                <model>billmatecustompay/methods_invoice</model>
                 <countries>SE,DE,NL</countries>
-                <title>Billmate Card</title>
+                <order_status>pending</order_status>
+                <title>
+                    <![CDATA[Billmate Invoice - %s invoice fee is added to the order.]]>
+                </title>
+                <active>1</active>
+                <include_tax>1</include_tax>
+                <min_amount>0</min_amount>
+                <max_amount>99999</max_amount>
+                <payment_action>authorize</payment_action>
+            </bmcustom_invoice>
+            <bmcustom_card>
+                <model>billmatecustompay/methods_card</model>
+                <countries>SE,DE,NL</countries>
+                <title><![CDATA[Billmate Card]]></title>
 				<card_error_page>home</card_error_page>
                 <payment_action>authorize</payment_action>
                 <prompt_name>0</prompt_name>
@@ -94,6 +107,13 @@
                     <frontName>custompay</frontName>
                 </args>
             </billmatecustompay>
+            <checkout>
+                <args>
+                    <modules>
+                        <Billmate_CustomPay before="Mage_Checkout">Billmate_CustomPay</Billmate_CustomPay>
+                    </modules>
+                </args>
+            </checkout>
         </routers>
     </frontend>
 </config>

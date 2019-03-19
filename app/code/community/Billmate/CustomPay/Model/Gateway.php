@@ -199,4 +199,12 @@ class Billmate_CustomPay_Model_Gateway extends Varien_Object
     {
         return $this->helper->getBmProvider();
     }
+
+    /**
+     * @return Mage_Checkout_Model_Type_Onepage
+     */
+    public function getOnepage()
+    {
+        return Mage::getSingleton('checkout/type_onepage');
+    }
 }

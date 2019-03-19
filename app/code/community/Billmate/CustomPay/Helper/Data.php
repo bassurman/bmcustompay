@@ -13,6 +13,16 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
     ];
 
     /**
+     * @var Billmate_Connection_Helper_Data
+     */
+    protected $connectionHelper;
+
+    public function __construct()
+    {
+        $this->connectionHelper = Mage::helper('bmconnection');
+    }
+
+    /**
      * @param bool $ssl
      * @param bool $debug
      *
@@ -20,7 +30,7 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getBillmate()
     {
-        return Mage::helper('bmconnection')->getBmProvider();
+        return $this->connectionHelper->getBmProvider();
     }
 
     /**
@@ -42,7 +52,7 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $langPath = $this->getLogoLangPath();
         return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) .
-            '/bmcustompay/images/' . $langPath. DIRECTORY_SEPARATOR . $methodCode . '.png';
+            '/bmcustompay/images/' . $langPath . DIRECTORY_SEPARATOR . $methodCode . '.png';
     }
 
     /**
@@ -64,6 +74,4 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return $this->_svLocales;
     }
-
-
 }

@@ -1,0 +1,57 @@
+<?php
+$gateway = $this->getGatewayPayment();
+$fieldname = array(	'street][','city','postcode');
+$groupname = array('billing','shipping');
+$address   = array_combine(
+    $fieldname,
+    array($gateway->street, $gateway->city, $gateway->postcode)
+);
+
+if(strlen($gateway->getFirstname())>0){
+    $fieldname[] = 'firstname';
+    $address['firstname'] = $gateway->getFirstname();
+}
+if(strlen($gateway->getLastname())>0){
+    $fieldname[] = 'lastname';
+    $address['lastname'] = $gateway->getLastname();
+}
+if(strlen($gateway->getCompany())>0){
+    $fieldname[] = 'company';
+    $address['company'] = $gateway->getCompany();
+}
+
+echo 'if(typeof streamcheckout != "undefined"){'."\n";
+if(Mage::getStoreConfig('firecheckout/general/enabled') && Mage::getSingleton('customer/session')->isLoggedIn()){
+    echo 'billing.newAddress(true)'."\n";
+
+}
+foreach( $groupname as $group ){
+    foreach($fieldname as $row){
+        echo 'if($$(\'input[name="'.$group.'['.$row.']"]\').size() > 0 ){ $$(\'input[name="'.$group.'['.$row.']"]\')[0].value="'.$address[$row].'";}',"\n";
+
+    }
+    if(Mage::getSingleton('customer/session')->isLoggedIn())
+        echo 'if($$(\'input[name="'.$group.'[telephone]"\').size()>0){ $$(\'input[name="'.$group.'[telephone]\')[0].value="'.$gateway->telephone.'";}',"\n";
+
+    echo 'if($$(\'[name="'.$group.'[country_id]"]\').size()>0){ $$(\'[name="'.$group.'[country_id]"]\')[0].value="'.$gateway->country.'";}'."\n";
+}
+
+echo 'closefunc();modalWin.HideModalPopUp();paymentSave();',"\n";
+echo '}'."\n";
+
+echo 'if((typeof checkout != "undefined" && typeof checkout.form != "undefined" ) || typeof checkoutForm != "undefined" || typeof OneStepCheckoutLoginPopup != "undefined"){',"\n";
+if(Mage::getStoreConfig('firecheckout/general/enabled') && Mage::getSingleton('customer/session')->isLoggedIn()){
+    echo 'billing.newAddress(true)'."\n";
+
+}
+foreach( $groupname as $group ){
+    foreach($fieldname as $row){
+        echo 'if($$(\'input[name="'.$group.'['.$row.']"]\').size() > 0 ){ $$(\'input[name="'.$group.'['.$row.']"]\')[0].value="'.$address[$row].'";}',"\n";
+    }
+    if(Mage::getSingleton('customer/session')->isLoggedIn())
+        echo 'if($$(\'input[name="'.$group.'[telephone]"\').size()>0){ $$(\'input[name="'.$group.'[telephone]\')[0].value="'.$gateway->telephone.'";}',"\n";
+    echo 'if($$(\'[name="'.$group.'[country_id]"]\').size()>0){ selectDropDown($$(\'[name="'.$group.'[country_id]"]\')[0],\''.$gateway->country.'\');}',"\n";
+}
+echo 'closefunc();modalWin.HideModalPopUp();',"\n";
+echo '}
+paymentSave();';
