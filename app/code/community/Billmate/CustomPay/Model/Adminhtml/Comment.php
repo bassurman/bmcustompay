@@ -2,10 +2,20 @@
 
 class Billmate_CustomPay_Model_Adminhtml_Comment
 {
-    public function getCommentText()
+    /**
+     * @var Billmate_CustomPay_Helper_Data
+     */
+    protected $helper;
+
+    public function __construct()
     {
-        $lang = explode('_',Mage::app()->getLocale()->getLocaleCode());
-        $langCode = ($lang[0] == 'sv') ? $lang[0] : 'en';
-        return '<img src="'.Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA)."billmate/images/".$langCode."/cardpay.png".'"/>';
+        $this->helper = Mage::helper('billmatecustompay');
+    }
+
+    public function getCommentText($element, $currentValue)
+    {
+        $methodCode = $element->getParent()->getParent()->getName();
+        $methodLogoUrl = $this->helper->getMethodLogo($methodCode);
+        return '<img src="'. $methodLogoUrl .'"/>';
     }
 }

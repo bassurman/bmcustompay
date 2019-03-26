@@ -29,7 +29,7 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
 
 	public function void( Varien_Object $payment )
 	{
-        if($this->isPushEvents()) {
+        if ($this->isPushEvents()) {
             $k = Mage::helper('billmatecustompay')->getBillmate();
             $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
             $values = array(

@@ -140,17 +140,6 @@
 
     </firecheckout_index_index>
 
-    <billmateinvoice_index_getinfo>
-        <reference name="root">
-            <action method="setTemplate">
-                <template>page/2columns-left.phtml</template>
-            </action>
-        </reference>
-        <reference name="content">
-            <block type="core/template" name="billmate_invoice_info" template='billmatecustompay/checkout/info.phtml'/>
-        </reference>
-    </billmateinvoice_index_getinfo>
-
     <sales_order_print>
         <reference name="order_totals">
             <block name="billmateinvoice_fee" type="billmateinvoice/order_totals_fee" before="tax"/>

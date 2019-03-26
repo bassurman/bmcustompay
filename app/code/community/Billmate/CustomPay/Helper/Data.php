@@ -52,7 +52,7 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $langPath = $this->getLogoLangPath();
         return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) .
-            '/bmcustompay/images/' . $langPath . DIRECTORY_SEPARATOR . $methodCode . '.png';
+            'bmcustompay/images/' . $langPath . DIRECTORY_SEPARATOR . $methodCode . '.png';
     }
 
     /**

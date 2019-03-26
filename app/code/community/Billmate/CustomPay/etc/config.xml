@@ -68,6 +68,18 @@
                 <max_amount>99999</max_amount>
                 <order_status>pending</order_status>
             </bmcustom_card>
+            <bmcustom_bankpay>
+                <model>billmatecustompay/methods_bankpay</model>
+                <countries>SE,DE,NL</countries>
+                <title>Billmate Bank</title>
+                <bank_error_page>home</bank_error_page>
+                <payment_action>authorize</payment_action>
+                <active>0</active>
+                <payment_action>sale</payment_action>
+                <min_amount>0</min_amount>
+                <max_amount>99999</max_amount>
+                <order_status>pending</order_status>
+            </bmcustom_bankpay>
         </payment>
         <payment_action>authorize</payment_action>
     </default>

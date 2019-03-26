@@ -61,5 +61,4 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
     {
         return $this->getHelper()->isPushEvents();
     }
-
 }
