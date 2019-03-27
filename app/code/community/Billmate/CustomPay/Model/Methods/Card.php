@@ -3,9 +3,22 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
 {
     const ALLOWED_PAYMENT_ACTION = 'authorize';
 
+    /**
+     * @var string
+     */
     protected $_code = 'bmcustom_card';
 
+    /**
+     * @var string
+     */
     protected $_formBlockType = 'billmatecustompay/card_form';
+
+    /**
+     * @var array
+     */
+    protected $allowedRefundStatuses = [
+        'Paid',
+    ];
     
     protected $_isGateway               = false;
     protected $_canAuthorize            = true;
@@ -127,32 +140,13 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
      */
     public function refund(Varien_Object $payment, $amount)
     {
-        if ($this->isPushEvents()) {
-            $bmConnection = $this->getBMConnection();
-            $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
-            $values = array(
-                'number' => $invoiceId
-            );
-            $paymentInfo = $bmConnection->getPaymentInfo($values);
-            if ($paymentInfo['PaymentData']['status'] == 'Paid') {
-                $values['partcredit'] = false;
-                $result = $bmConnection->creditPayment(array('PaymentData' => $values));
-
-                if(isset($result['code']) ) {
-                    Mage::throwException(utf8_encode($result['message']));
-                }
-                if (!isset($result['code'])) {
-                    $payment->setTransactionId($result['number']);
-                    $payment->setIsTransactionClosed(1);
-                    Mage::dispatchEvent('billmate_cardpay_refund',array('payment' => $payment, 'amount' => $amount));
-                }
-            }
-        } else {
-            $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
-            $payment->setTransactionId($invoiceId);
+        if (!$this->isPushEvents()) {
+            $payment->setTransactionId($this->getInvoiceIdFromPayment($payment));
             $payment->setIsTransactionClosed(1);
+            return $this;
         }
-        return $this;
+
+        return $this->doRefund($payment, $amount);
     }
 
     /**
@@ -160,16 +154,16 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
      */
     public function getCheckoutRedirectUrl()
     {
-        $session = $this->getCheckoutSession();
-        $session->setBillmateQuoteId($session->getQuoteId());
-        $session->setRebuildCart(true);
-
+        $this->updateBmDataInSession();
         $gateway = Mage::getSingleton('billmatecustompay/gateway_card');
         $result = $gateway->makePayment();
         
         return $result['url'];
     }
 
+    /**
+     * @return bool
+     */
     protected function isAllowedToCapture()
     {
         return $this->isPushEvents() &&

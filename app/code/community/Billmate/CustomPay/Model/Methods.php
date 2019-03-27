@@ -5,6 +5,11 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
     const ALLOWED_CURRENCY_CODES = [];
 
     /**
+     * @var array
+     */
+    protected $allowedRefundStatuses = [];
+
+    /**
      * @param null $quote
      *
      * @return bool
@@ -126,10 +131,101 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
     }
 
     /**
+     * @param $payment
+     * @param $amount
+     *
+     * @return $this
+     */
+    protected function doRefund($payment, $amount)
+    {
+        $bmRequestData = $this->getBmCallbackRequestData($payment);
+        $paymentInfo = $this->getBMConnection()->getPaymentInfo($bmRequestData);
+
+        if ($this->isAllowedToRefund($paymentInfo)) {
+            $bmRequestData['partcredit'] = false;
+            $bmResponseData = $this->getBMConnection()
+                ->creditPayment([
+                    'PaymentData' => $bmRequestData
+                ]);
+            if (isset($bmResponseData['code'])) {
+                Mage::throwException(utf8_encode($bmResponseData['message']));
+            }
+
+            if (!isset($bmResponseData['code'])) {
+                $payment->setTransactionId($bmResponseData['number']);
+                $payment->setIsTransactionClosed(1);
+                Mage::dispatchEvent(
+                    $this->getCode() . '_refund',
+                    ['payment' => $payment, 'amount' => $amount]
+                );
+            }
+        }
+        return $this;
+    }
+
+    /**
      * @return array
      */
     protected function getAllowedCurrencies()
     {
         return static::ALLOWED_CURRENCY_CODES;
+    }
+
+    /**
+     * @return $this
+     */
+    protected function updateBmDataInSession()
+    {
+        $session = $this->getCheckoutSession();
+        $session->setBillmateQuoteId($session->getQuoteId());
+        $session->setRebuildCart(true);
+        return $this;
+    }
+
+    /**
+     * @param $bmStatus
+     *
+     * @return bool
+     */
+    protected function isAllowedToRefund($bmResponseData)
+    {
+        return in_array(
+            $bmResponseData['PaymentData']['status'],
+            $this->getAllowedRefundStatuses()
+        );
+    }
+
+    /**
+     * @return array
+     */
+    protected function getAllowedRefundStatuses()
+    {
+        return $this->allowedRefundStatuses;
+    }
+
+    /**
+     * @param $payment
+     *
+     * @return int
+     */
+    protected function getInvoiceIdFromPayment($payment)
+    {
+        return $payment->getMethodInstance()
+            ->getInfoInstance()
+            ->getAdditionalInformation('invoiceid');
+    }
+
+    /**
+     * @param $payment
+     *
+     * @return array
+     */
+    protected function getBmCallbackRequestData($payment)
+    {
+        $invoiceId = $this->getInvoiceIdFromPayment($payment);
+        $bmRequestData = array(
+            'number' => $invoiceId
+        );
+        return $bmRequestData;
     }
 }

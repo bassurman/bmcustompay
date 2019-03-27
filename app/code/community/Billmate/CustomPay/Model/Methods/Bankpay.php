@@ -4,8 +4,22 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
 
     const ALLOWED_CURRENCY_CODES = ['SEK'];
 
+    /**
+     * @var string
+     */
     protected $_code = 'bmcustom_bankpay';
+
+    /**
+     * @var string
+     */
     protected $_formBlockType = 'billmatecustompay/bankpay_form';
+
+    /**
+     * @var array
+     */
+    protected $allowedRefundStatuses = [
+        'Paid',
+    ];
     
     protected $_isGateway               = false;
     protected $_canAuthorize            = true;
@@ -37,9 +51,12 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
      */
 	public function void( Varien_Object $payment )
 	{
-        if($this->isPushEvents()) {
+        if ($this->isPushEvents()) {
             $bmConnection = $this->getBMConnection();
-            $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
+            $invoiceId = $payment->getMethodInstance()
+                ->getInfoInstance()
+                ->getAdditionalInformation('invoiceid');
+
             $values = array(
                 'number' => $invoiceId
             );
@@ -76,10 +93,7 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
      */
     public function getCheckoutRedirectUrl()
     {
-        $session = $this->getCheckoutSession();
-        $session->setBillmateQuoteId($session->getQuoteId());
-        $session->setRebuildCart(true);
-
+        $this->updateBmDataInSession();
         $gateway = Mage::getSingleton('billmatecustompay/gateway_bankpay');
         $result = $gateway->makePayment();
 
@@ -104,17 +118,25 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
             $paymentInfo = $bmConnection->getPaymentInfo($values);
             if ($paymentInfo['PaymentData']['status'] == 'Created') {
                 $boTotal = $paymentInfo['Cart']['Total']['withtax']/100;
-                if($amount != $boTotal){
-                    Mage::throwException($this->getHelper()->__('The amounts don\'t match. Billmate Online %s and Store %s. Activate manually in Billmate.',$boTotal,$amount));
+                if ($amount != $boTotal) {
+                    Mage::throwException(
+                        $this->getHelper()->__(
+                            'The amounts don\'t match. Billmate Online %s and Store %s. Activate manually in Billmate.',
+                            $boTotal,
+                            $amount
+                        ));
                 }
-                $result = $bmConnection->activatePayment(array('PaymentData' => $values));
-                if(isset($result['code']) )
-                    Mage::throwException(utf8_encode($result['message']));
-                if(!isset($result['code'])){
-                    $payment->setTransactionId($result['number']);
-                    $payment->setIsTransactionClosed(1);
-                    Mage::dispatchEvent('billmate_bankpay_capture',array('payment' => $payment, 'amount' => $amount));
+                $bmResponseData = $bmConnection->activatePayment(array('PaymentData' => $values));
+
+                if (isset($bmResponseData['code']) ){
+                    Mage::throwException(utf8_encode($bmResponseData['message']));
                 }
+
+                $payment->setTransactionId($bmResponseData['number']);
+                $payment->setIsTransactionClosed(1);
+                Mage::dispatchEvent('billmate_bankpay_capture',array(
+                    'payment' => $payment, 'amount' => $amount)
+                );
             }
 
         }
@@ -129,26 +151,10 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
      */
     public function refund(Varien_Object $payment, $amount)
     {
-        if ($this->isPushEvents()) {
-            $bmConnection = $this->getBMConnection();
-            $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
-            $values = array(
-                'number' => $invoiceId
-            );
-            $paymentInfo = $bmConnection->getPaymentInfo($values);
-            if ($paymentInfo['PaymentData']['status'] == 'Paid') {
-                $values['partcredit'] = false;
-                $result = $bmConnection->creditPayment(array('PaymentData' => $values));
-                if(isset($result['code']) )
-                    Mage::throwException(utf8_encode($result['message']));
-                if(!isset($result['code'])){
-                    $payment->setTransactionId($result['number']);
-                    $payment->setIsTransactionClosed(1);
-                    Mage::dispatchEvent('billmate_bankpay_refund',array('payment' => $payment, 'amount' => $amount));
-
-                }
-            }
+        if (!$this->isPushEvents()) {
+            return $this;
         }
-        return $this;
+
+        return $this->doRefund($payment, $amount);
     }
 }
