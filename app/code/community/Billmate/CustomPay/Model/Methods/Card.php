@@ -38,14 +38,14 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
     public function void( Varien_Object $payment )
     {
         if (Mage::getStoreConfig('billmate/settings/activation')) {
-            $k = $this->getBMConnection();
+            $bmConnection = $this->getBMConnection();
             $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
             $values = array(
                 'number' => $invoiceId
             );
-            $paymentInfo = $k->getPaymentInfo($values);
+            $paymentInfo = $bmConnection->getPaymentInfo($values);
             if ($paymentInfo['PaymentData']['status'] == 'Created') {
-                $result = $k->cancelPayment($values);
+                $result = $bmConnection->cancelPayment($values);
                 if (isset($result['code'])) {
                     Mage::throwException($result['message']);
                 }
@@ -57,9 +57,9 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
             if($paymentInfo['PaymentData']['status'] == 'Paid'){
                 $values['partcredit'] = false;
                 $paymentData['PaymentData'] = $values;
-                $result = $k->creditPayment($paymentData);
+                $result = $bmConnection->creditPayment($paymentData);
                 if(!isset($result['code'])){
-                    $k->activatePayment(array('number' => $result['number']));
+                    $bmConnection->activatePayment(array('number' => $result['number']));
 
                     $payment->setTransactionId($result['number']);
                     $payment->setIsTransactionClosed(1);
@@ -96,13 +96,13 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
             return $this;
         }
 
-        $k = $this->getBMConnection();
+        $bmConnection = $this->getBMConnection();
         $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
         $values = array(
             'number' => $invoiceId
         );
 
-        $paymentInfo = $k->getPaymentInfo($values);
+        $paymentInfo = $bmConnection->getPaymentInfo($values);
         if (is_array($paymentInfo) && $paymentInfo['PaymentData']['status'] == 'Created') {
             $boTotal = $paymentInfo['Cart']['Total']['withtax']/100;
             if ($amount != $boTotal) {
@@ -114,7 +114,7 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
                         $amount
                 ));
             }
-            $result = $k->activatePayment(array('PaymentData' => $values));
+            $result = $bmConnection->activatePayment(array('PaymentData' => $values));
             if(isset($result['code']) )
                 Mage::throwException(utf8_encode($result['message']));
             if (!isset($result['code'])) {
@@ -129,18 +129,24 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
         return $this;
     }
 
+    /**
+     * @param Varien_Object $payment
+     * @param float         $amount
+     *
+     * @return $this
+     */
     public function refund(Varien_Object $payment, $amount)
     {
         if ($this->isPushEvents()) {
-            $k = $this->getBMConnection();
+            $bmConnection = $this->getBMConnection();
             $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
             $values = array(
                 'number' => $invoiceId
             );
-            $paymentInfo = $k->getPaymentInfo($values);
+            $paymentInfo = $bmConnection->getPaymentInfo($values);
             if ($paymentInfo['PaymentData']['status'] == 'Paid') {
                 $values['partcredit'] = false;
-                $result = $k->creditPayment(array('PaymentData' => $values));
+                $result = $bmConnection->creditPayment(array('PaymentData' => $values));
 
                 if(isset($result['code']) ) {
                     Mage::throwException(utf8_encode($result['message']));
@@ -159,9 +165,12 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getCheckoutRedirectUrl()
     {
-        $session = Mage::getSingleton('checkout/session');
+        $session = $this->getCheckoutSession();
         $session->setBillmateQuoteId($session->getQuoteId());
         $session->setRebuildCart(true);
 
