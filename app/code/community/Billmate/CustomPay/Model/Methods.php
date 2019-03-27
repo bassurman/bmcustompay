@@ -55,10 +55,45 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
     }
 
     /**
+     * @return Billmate_CustomPay_Helper_Data
+     */
+    protected function getDataHelper()
+    {
+        return Mage::helper('billmatecustompay');
+    }
+
+    /**
+     * @return BillMate
+     */
+    protected function getBMConnection()
+    {
+        return $this->getDataHelper()->getBillmate();
+    }
+
+    /**
      * @return bool
      */
     protected function isPushEvents()
     {
         return $this->getHelper()->isPushEvents();
+    }
+
+    /**
+     * @return Mage_Checkout_Model_Session
+     */
+    public function getCheckout()
+    {
+        return Mage::getSingleton('checkout/session');
+    }
+
+    /**
+     * @param Varien_Object $payment
+     *
+     * @return $this
+     */
+    public function cancel( Varien_Object $payment )
+    {
+        $this->void($payment);
+        return $this;
     }
 }

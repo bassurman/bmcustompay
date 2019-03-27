@@ -1,6 +1,9 @@
 <?php
 class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_Methods
 {
+
+    const CURRENCY_CODE = 'SEK';
+
     protected $_code = 'bmcustom_bankpay';
     protected $_formBlockType = 'billmatecustompay/bankpay_form';
     
@@ -15,6 +18,10 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
     protected $_canUseInternal          = false;
     protected $_canUseCheckout          = true;
 
+    /**
+     * @param string $paymentAction
+     * @param object $stateObject
+     */
     public function initialize($paymentAction, $stateObject)
     {
         $state = Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
@@ -22,12 +29,6 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
         $stateObject->setStatus('pending_payment');
         $stateObject->setIsNotified(false);
     }
-
-	public function cancel( Varien_Object $payment )
-	{
-		$this->void($payment);
-		return $this;
-	}
 
 	public function void( Varien_Object $payment )
 	{
@@ -48,11 +49,11 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
                 $payment->setTransactionId($result['number']);
                 $payment->setIsTransactionClosed(1);
             }
-            if($paymentInfo['PaymentData']['status'] == 'Paid'){
+            if ($paymentInfo['PaymentData']['status'] == 'Paid') {
                 $values['partcredit'] = false;
                 $paymentData['PaymentData'] = $values;
                 $result = $k->creditPayment($paymentData);
-                if(!isset($result['code'])){
+                if (!isset($result['code'])) {
                     $k->activatePayment(array('number' => $result['number']));
 
                     $payment->setTransactionId($result['number']);
@@ -64,61 +65,29 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
             return $this;
         }
 	}
+
+    /**
+     * @param string $currencyCode
+     *
+     * @return bool
+     */
     public function canUseForCurrency($currencyCode)
     {
         $currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
-
-        if($currencyCode == 'SEK')
+        if ($currencyCode == self::CURRENCY_CODE) {
             return true;
+        }
         return false;
     }
+
+    /**
+     * @param null $quote
+     *
+     * @return bool
+     */
     public function isAvailable($quote = null)
     {
-        if ($quote == null ) {
-            return false;
-        }
-        if (Mage::getSingleton('checkout/session')->getBillmateHash()) {
-            return true;
-        }
-
-		if (Mage::getStoreConfig('payment/bmcustom_bankpay/active')) {
-            return false;
-        }
-
-        $countries = explode(',', Mage::getStoreConfig('payment/bmcustom_bankpay/countries'));
-
-        if (in_array($quote->getShippingAddress()->getCountry(), $countries ) ) {
-			$total = $quote->getSubtotal();
-			$min_total = Mage::getStoreConfig('payment/bmcustom_bankpay/min_amount');
-			$max_total = Mage::getStoreConfig('payment/bmcustom_bankpay/max_amount');
-            if(!empty($min_total) && $min_total > 0){
-
-                $status = $total >= $min_total;
-
-            } else {
-                $status = true;
-            }
-
-            if ($status && (!empty($max_total) && $max_total > 0)) {
-                $status = $total <= $max_total;
-            } else {
-                $status = $status;
-            }
-
-            return $status;
-		}
-
-		return false;
-    }
-
-    public function getCheckout()
-    {
-        return Mage::getSingleton('checkout/session');
-    }
-
-    public function getTitle()
-    {
-        return (strlen(Mage::getStoreConfig('payment/bmcustom_bankpay/title')) > 0) ? Mage::helper('billmatecustompay')->__(Mage::getStoreConfig('payment/bmcustom_bankpay/title')) : Mage::helper('billmatecustompay')->__('Billmate Bank');
+        return $this->isAllowedToUse($quote);
     }
 
     public function getCheckoutRedirectUrl()

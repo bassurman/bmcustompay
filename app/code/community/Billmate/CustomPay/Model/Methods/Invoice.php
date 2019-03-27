@@ -21,12 +21,6 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
         return $this->isAllowedToUse($quote);
     }
 
-	public function cancel( Varien_Object $payment )
-	{
-		$this->void($payment);
-		return $this;
-	}
-
 	public function void( Varien_Object $payment )
 	{
         if ($this->isPushEvents()) {
@@ -100,7 +94,7 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
             $invFee = Mage::helper('core')->currency($invFee, true, false);
             return $this->getHelper()->__($methodTitle, $invFee);
         }
-        return $this->getHelper()->__($methodTitle);
+        return parent::getTitle();
     }
 
     /**
