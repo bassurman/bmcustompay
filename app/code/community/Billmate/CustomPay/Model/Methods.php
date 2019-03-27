@@ -2,6 +2,18 @@
 
 abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Method_Abstract
 {
+    const ALLOWED_CURRENCY_CODES = [];
+
+    /**
+     * @param null $quote
+     *
+     * @return bool
+     */
+    public function isAvailable($quote = null)
+    {
+        return $this->isAllowedToUse($quote);
+    }
+
     /**
      * @return Billmate_CustomPay_Helper_Methods
      */
@@ -95,5 +107,29 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
         }
 
         return $status;
+    }
+
+    /**
+     * @param string $currencyCode
+     *
+     * @return bool
+     */
+    public function canUseForCurrency($currencyCode)
+    {
+        $allowedCurrencies = $this->getAllowedCurrencies();
+        if(!$allowedCurrencies) {
+            return parent::canUseForCurrency($currencyCode);
+        }
+
+        $currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
+        return in_array($currencyCode, $allowedCurrencies);
+    }
+
+    /**
+     * @return array
+     */
+    protected function getAllowedCurrencies()
+    {
+        return static::ALLOWED_CURRENCY_CODES;
     }
 }

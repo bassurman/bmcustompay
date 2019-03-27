@@ -2,6 +2,13 @@
 
 class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_Methods
 {
+    const ALLOWED_CURRENCY_CODES = [
+        'SEK',
+        'USD',
+        'EUR',
+        'GBP'
+    ];
+
     protected $_code = 'bmcustom_invoice';
 
     protected $_formBlockType = 'billmatecustompay/invoice_form';
@@ -16,20 +23,23 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
     protected $_canUseInternal          = false;
     protected $_canUseCheckout          = true;
 
-    public function isAvailable($quote = null)
-    {
-        return $this->isAllowedToUse($quote);
-    }
-
+    /**
+     * @param Varien_Object $payment
+     *
+     * @return $this
+     */
 	public function void( Varien_Object $payment )
 	{
         if ($this->isPushEvents()) {
             $bmConnection = $this->getBMConnection();
-            $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
-            $values = array(
+            $invoiceId = $payment->getMethodInstance()
+                ->getInfoInstance()
+                ->getAdditionalInformation('invoiceid');
+            $values = [
                 'number' => $invoiceId
-            );
+            ];
             $paymentInfo = $bmConnection->getPaymentInfo($values);
+
             if ($paymentInfo['PaymentData']['status'] == 'Created') {
                 $result = $bmConnection->cancelPayment($values);
                 if (isset($result['code'])) {
@@ -38,6 +48,7 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
                 $payment->setTransactionId($result['number']);
                 $payment->setIsTransactionClosed(1);
             }
+
             if ($paymentInfo['PaymentData']['status'] == 'Paid') {
                 $values['partcredit'] = false;
                 $paymentData['PaymentData'] = $values;
@@ -56,23 +67,30 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
         }
 	}
 
+    /**
+     * @param Varien_Object $payment
+     * @param float         $amount
+     */
     public function authorize(Varien_Object $payment, $amount)
     {
-        if(
-            $hash = $this->getCheckoutSession()->getBillmateHash()
-                && Mage::registry('billmate_checkout_complete')
-        ) {
-
-            $result = $this->getBMConnection()->getCheckout(array('PaymentData' => array('hash' => $hash)));
-            $payment->setTransactionId($result['PaymentData']['order']['number']);
-            $payment->setIsTransactionClosed(0);
+        $hash = $this->getCheckoutSession()->getBillmateHash();
+        if ($hash && $this->isBmCheckoutComplete()) {
+            $bmResponse = $this->getBMConnection()->getCheckout(array('PaymentData' => array('hash' => $hash)));
+            $payment->setTransactionId($bmResponse['PaymentData']['order']['number']);
         } else {
             $gateway = Mage::getSingleton('billmatecustompay/gateway_invoice');
             $invoiceId = $gateway->makePayment();
             $payment->setTransactionId($invoiceId);
-
-            $payment->setIsTransactionClosed(0);
         }
+        $payment->setIsTransactionClosed(0);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function isBmCheckoutComplete()
+    {
+        return Mage::registry('billmate_checkout_complete');
     }
 
     /**
@@ -95,21 +113,6 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
             return $this->getHelper()->__($methodTitle, $invFee);
         }
         return parent::getTitle();
-    }
-
-    /**
-     * @param string $currencyCode
-     *
-     * @return bool
-     */
-    public function canUseForCurrency($currencyCode)
-    {
-        $currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
-        if(in_array($currencyCode,array('SEK','USD','EUR','GBP'))) {
-            return true;
-        }
-
-        return false;
     }
 
     /**

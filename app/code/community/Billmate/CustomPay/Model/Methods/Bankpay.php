@@ -2,7 +2,7 @@
 class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_Methods
 {
 
-    const CURRENCY_CODE = 'SEK';
+    const ALLOWED_CURRENCY_CODES = ['SEK'];
 
     protected $_code = 'bmcustom_bankpay';
     protected $_formBlockType = 'billmatecustompay/bankpay_form';
@@ -70,30 +70,6 @@ class Billmate_CustomPay_Model_Methods_Bankpay extends Billmate_CustomPay_Model_
             return $this;
         }
 	}
-
-    /**
-     * @param string $currencyCode
-     *
-     * @return bool
-     */
-    public function canUseForCurrency($currencyCode)
-    {
-        $currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
-        if ($currencyCode == self::CURRENCY_CODE) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param null $quote
-     *
-     * @return bool
-     */
-    public function isAvailable($quote = null)
-    {
-        return $this->isAllowedToUse($quote);
-    }
 
     /**
      * @return string

@@ -72,16 +72,6 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
     }
 
     /**
-     * @param null $quote
-     *
-     * @return bool
-     */
-    public function isAvailable($quote = null)
-    {
-        return $this->isAllowedToUse($quote);
-    }
-
-    /**
      * @param Varien_Object $payment
      * @param float         $amount
      *
