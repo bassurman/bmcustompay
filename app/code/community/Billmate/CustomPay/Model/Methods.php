@@ -10,6 +10,11 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
     protected $allowedRefundStatuses = [];
 
     /**
+     * @var array
+     */
+    protected $allowedCaptureStatuses = [];
+
+    /**
      * @param null $quote
      *
      * @return bool
@@ -136,6 +141,47 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
      *
      * @return $this
      */
+    public function doCapture($payment, $amount)
+    {
+        $bmRequestData = $this->getBmCallbackRequestData($payment);
+        $paymentInfo = $this->getBMConnection()->getPaymentInfo($bmRequestData);
+
+        if ($this->isAllowedToCapture($paymentInfo)) {
+            $boTotal = $paymentInfo['Cart']['Total']['withtax']/100;
+            if ($amount != $boTotal) {
+                Mage::throwException($this->getHelper()
+                    ->__(
+                        'The amounts don\'t match. Billmate Online %s and Store %s. Activate manually in Billmate.',
+                        $boTotal,
+                        $amount
+                    ));
+            }
+            $result = $this->getBMConnection()->activatePayment(['PaymentData' => $bmRequestData]);
+            if (isset($result['code']) ) {
+                Mage::throwException(utf8_encode($result['message']));
+            }
+
+            if (!isset($result['code'])) {
+                $payment->setTransactionId($result['number']);
+                $payment->setIsTransactionClosed(1);
+                Mage::dispatchEvent($this->getCode() . '_capture',
+                    [
+                        'payment' => $payment,
+                        'amount' => $amount
+                    ]);
+            }
+
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param $payment
+     * @param $amount
+     *
+     * @return $this
+     */
     protected function doRefund($payment, $amount)
     {
         $bmRequestData = $this->getBmCallbackRequestData($payment);
@@ -195,12 +241,34 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
         );
     }
 
+
+    /**
+     * @param $bmStatus
+     *
+     * @return bool
+     */
+    protected function isAllowedToCapture($bmResponseData)
+    {
+        return in_array(
+            $bmResponseData['PaymentData']['status'],
+            $this->getAllowedCaptureStatuses()
+        );
+    }
+
     /**
      * @return array
      */
     protected function getAllowedRefundStatuses()
     {
         return $this->allowedRefundStatuses;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getAllowedCaptureStatuses()
+    {
+        return $this->allowedCaptureStatuses;
     }
 
     /**

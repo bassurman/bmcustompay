@@ -19,6 +19,13 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
     protected $allowedRefundStatuses = [
         'Paid',
     ];
+
+    /**
+     * @var array
+     */
+    protected $allowedCaptureStatuses = [
+        'Created'
+    ];
     
     protected $_isGateway               = false;
     protected $_canAuthorize            = true;
@@ -92,44 +99,14 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
      */
     public function capture(Varien_Object $payment, $amount)
     {
-        if (!$this->isAllowedToCapture()) {
+        if (!$this->isAllowedToCaptureProcess()) {
             $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
             $payment->setTransactionId($invoiceId);
             $payment->setIsTransactionClosed(1);
             return $this;
         }
 
-        $bmConnection = $this->getBMConnection();
-        $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
-        $values = array(
-            'number' => $invoiceId
-        );
-
-        $paymentInfo = $bmConnection->getPaymentInfo($values);
-        if (is_array($paymentInfo) && $paymentInfo['PaymentData']['status'] == 'Created') {
-            $boTotal = $paymentInfo['Cart']['Total']['withtax']/100;
-            if ($amount != $boTotal) {
-                
-                Mage::throwException($this->getHelper()
-                ->__(
-                        'The amounts don\'t match. Billmate Online %s and Store %s. Activate manually in Billmate.',
-                        $boTotal,
-                        $amount
-                ));
-            }
-            $result = $bmConnection->activatePayment(array('PaymentData' => $values));
-            if(isset($result['code']) )
-                Mage::throwException(utf8_encode($result['message']));
-            if (!isset($result['code'])) {
-                $payment->setTransactionId($result['number']);
-                $payment->setIsTransactionClosed(1);
-                Mage::dispatchEvent('billmate_cardpay_capture',array('payment' => $payment, 'amount' => $amount));
-
-            }
-
-        }
-
-        return $this;
+        return $this->doCapture($payment, $amount);
     }
 
     /**
@@ -164,7 +141,7 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
     /**
      * @return bool
      */
-    protected function isAllowedToCapture()
+    protected function isAllowedToCaptureProcess()
     {
         return $this->isPushEvents() &&
             $this->getHelper()->getPaymentAction($this->getCode()) == self::ALLOWED_PAYMENT_ACTION;

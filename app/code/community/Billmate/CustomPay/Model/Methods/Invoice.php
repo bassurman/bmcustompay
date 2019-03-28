@@ -26,6 +26,13 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
         'Paid',
         'Factoring'
     ];
+
+    /**
+     * @var array
+     */
+    protected $allowedCaptureStatuses = [
+        'Created'
+    ];
     
     protected $_isGateway               = true;
     protected $_canAuthorize            = true;
@@ -138,30 +145,7 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
     public function capture(Varien_Object $payment, $amount)
     {
         if ($this->isPushEvents()) {
-            $bmConnection = $this->getBMConnection();
-            $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
-
-            $values = array(
-                'number' => $invoiceId
-            );
-
-            $paymentInfo = $bmConnection->getPaymentInfo($values);
-            if ($paymentInfo['PaymentData']['status'] == 'Created') {
-                $boTotal = $paymentInfo['Cart']['Total']['withtax']/100;
-                if($amount != $boTotal){
-                    Mage::throwException($this->getHelper()->__('The amounts don\'t match. Billmate Online %s and Store %s. Activate manually in Billmate.',$boTotal,$amount));
-                }
-                $result = $bmConnection->activatePayment(array('PaymentData' => $values));
-                if(isset($result['code']) )
-                    Mage::throwException(utf8_encode($result['message']));
-                if(!isset($result['code'])){
-                    $payment->setTransactionId($result['number']);
-                    $payment->setIsTransactionClosed(1);
-                    Mage::dispatchEvent('billmate_invoice_capture',array('payment' => $payment, 'amount' => $amount));
-
-                }
-
-            }
+            return $this->doCapture($payment, $amount);
         }
         return $this;
     }
