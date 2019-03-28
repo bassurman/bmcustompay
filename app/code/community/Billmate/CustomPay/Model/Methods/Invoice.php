@@ -52,40 +52,9 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
 	public function void( Varien_Object $payment )
 	{
         if ($this->isPushEvents()) {
-            $bmConnection = $this->getBMConnection();
-            $invoiceId = $payment->getMethodInstance()
-                ->getInfoInstance()
-                ->getAdditionalInformation('invoiceid');
-            $values = [
-                'number' => $invoiceId
-            ];
-            $paymentInfo = $bmConnection->getPaymentInfo($values);
-
-            if ($paymentInfo['PaymentData']['status'] == 'Created') {
-                $result = $bmConnection->cancelPayment($values);
-                if (isset($result['code'])) {
-                    Mage::throwException($result['message']);
-                }
-                $payment->setTransactionId($result['number']);
-                $payment->setIsTransactionClosed(1);
-            }
-
-            if ($paymentInfo['PaymentData']['status'] == 'Paid') {
-                $values['partcredit'] = false;
-                $paymentData['PaymentData'] = $values;
-                $result = $bmConnection->creditPayment($paymentData);
-                if (!isset($result['code'])) {
-                    $bmConnection->activatePayment(array('number' => $result['number']));
-
-                    $payment->setTransactionId($result['number']);
-                    $payment->setIsTransactionClosed(1);
-                    Mage::dispatchEvent('billmate_invoice_voided',array('payment' => $payment));
-
-                }
-            }
-
-            return $this;
+            $this->doVoid($payment);
         }
+        return $this;
 	}
 
     /**

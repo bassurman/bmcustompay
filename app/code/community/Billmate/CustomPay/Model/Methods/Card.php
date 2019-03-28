@@ -57,38 +57,10 @@ class Billmate_CustomPay_Model_Methods_Card extends Billmate_CustomPay_Model_Met
      */
     public function void( Varien_Object $payment )
     {
-        if (Mage::getStoreConfig('billmate/settings/activation')) {
-            $bmConnection = $this->getBMConnection();
-            $invoiceId = $payment->getMethodInstance()->getInfoInstance()->getAdditionalInformation('invoiceid');
-            $values = array(
-                'number' => $invoiceId
-            );
-            $paymentInfo = $bmConnection->getPaymentInfo($values);
-            if ($paymentInfo['PaymentData']['status'] == 'Created') {
-                $result = $bmConnection->cancelPayment($values);
-                if (isset($result['code'])) {
-                    Mage::throwException($result['message']);
-                }
-                $payment->setTransactionId($result['number']);
-                $payment->setIsTransactionClosed(1);
-                Mage::dispatchEvent('billmate_cardpay_voided',array('payment' => $payment));
-
-            }
-            if($paymentInfo['PaymentData']['status'] == 'Paid'){
-                $values['partcredit'] = false;
-                $paymentData['PaymentData'] = $values;
-                $result = $bmConnection->creditPayment($paymentData);
-                if(!isset($result['code'])){
-                    $bmConnection->activatePayment(array('number' => $result['number']));
-
-                    $payment->setTransactionId($result['number']);
-                    $payment->setIsTransactionClosed(1);
-                    Mage::dispatchEvent('billmate_cardpay_voided',array('payment' => $payment));
-                }
-            }
-
-            return $this;
+        if ($this->isPushEvents()) {
+            $this->doVoid($payment);
         }
+        return $this;
     }
 
     /**

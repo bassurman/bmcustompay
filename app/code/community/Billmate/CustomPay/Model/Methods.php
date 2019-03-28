@@ -137,6 +137,41 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
 
     /**
      * @param $payment
+     *
+     * @return $this
+     */
+    public function doVoid($payment)
+    {
+        $bmRequestData = $this->getBmCallbackRequestData($payment);
+        $paymentInfo = $this->getBMConnection()->getPaymentInfo($bmRequestData);
+
+        if ($paymentInfo['PaymentData']['status'] == 'Created') {
+            $result = $this->getBMConnection()->cancelPayment($bmRequestData);
+            if (isset($result['code'])) {
+                Mage::throwException($result['message']);
+            }
+            $payment->setTransactionId($result['number']);
+            $payment->setIsTransactionClosed(1);
+            Mage::dispatchEvent($this->getCode() . '_voided',array('payment' => $payment));
+        }
+
+        if ($paymentInfo['PaymentData']['status'] == 'Paid') {
+            $values['partcredit'] = false;
+            $paymentData['PaymentData'] = $bmRequestData;
+            $result = $this->getBMConnection()->creditPayment($paymentData);
+            if (!isset($result['code'])) {
+                $this->getBMConnection()->activatePayment(array('number' => $result['number']));
+                $payment->setTransactionId($result['number']);
+                $payment->setIsTransactionClosed(1);
+                Mage::dispatchEvent($this->getCode() . '_voided',array('payment' => $payment));
+
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @param $payment
      * @param $amount
      *
      * @return $this
