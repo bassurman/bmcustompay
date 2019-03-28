@@ -2,14 +2,23 @@
 <config>
     <modules>
         <Billmate_CustomPay>
-            <version>0.0.1</version>
+            <version>1.0.6</version>
         </Billmate_CustomPay>
     </modules>
     <global>
         <models>
             <billmatecustompay>
                 <class>Billmate_CustomPay_Model</class>
+                <resourceModel>billmate_custompay_pclasses_mysql4</resourceModel>
             </billmatecustompay>
+            <billmate_custompay_pclasses_mysql4>
+                <class>Billmate_CustomPay_Model_Mysql4</class>
+                <entities>
+                    <billmate_custompay_pclasses>
+                        <table>billmate_custompay_pclasses</table>
+                    </billmate_custompay_pclasses>
+                </entities>
+            </billmate_custompay_pclasses_mysql4>
         </models>
         <blocks>
             <billmatecustompay>
@@ -39,6 +48,27 @@
                 </states>
             </order>
         </sales>
+        <resources>
+            <bmcustompay_setup>
+                <setup>
+                    <module>Billmate_CustomPay</module>
+                    <class>Mage_Eav_Model_Entity_Setup</class>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </bmcustompay_setup>
+            <bmcustompay_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </bmcustompay_read>
+            <bmcustompay_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </bmcustompay_write>
+        </resources>
     </global>
     <default>
         <payment>

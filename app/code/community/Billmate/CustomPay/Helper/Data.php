@@ -74,4 +74,21 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return $this->_svLocales;
     }
+
+    /**
+     * @return int
+     */
+    public function getStoreIdForConfig()
+    {
+        if (strlen($code = Mage::getSingleton('adminhtml/config_data')->getStore())) {
+            $store_id = Mage::getModel('core/store')->load($code)->getId();
+        } elseif (strlen($code = Mage::getSingleton('adminhtml/config_data')->getWebsite())) {
+            $website_id = Mage::getModel('core/website')->load($code)->getId();
+            $store_id = Mage::app()->getWebsite($website_id)->getDefaultStore()->getId();
+        } else {
+            $store_id = 0;
+        }
+
+        return $store_id;
+    }
 }

@@ -3,4 +3,6 @@ app/design/frontend/base/default/template/billmatecustompay/*			app/design/front
 app/design/frontend/base/default/layout/*								app/design/frontend/base/default/layout/
 media/bmcustompay														media/bmcustompay
 app/etc/modules/*														app/etc/modules/
-skin/frontend/base/default/css/bmcustompay 							skin/frontend/base/default/css/bmcustompay/
+skin/frontend/base/default/css/bmcustompay 								skin/frontend/base/default/css/bmcustompay/
+app/design/adminhtml/default/default/layout/*							app/design/adminhtml/default/default/layout/
+app/design/adminhtml/default/default/template/bmcustompay				app/design/adminhtml/default/default/template/bmcustompay/

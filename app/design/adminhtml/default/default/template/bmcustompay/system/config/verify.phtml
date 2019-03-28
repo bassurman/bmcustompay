@@ -1,0 +1,47 @@
+<?php
+if (strlen($code = Mage::app()->getRequest()->getParam('store'))) { // store level
+    $store_id = Mage::getModel('core/store')->load($code)->getId();
+} elseif (strlen($code = $code = Mage::app()->getRequest()->getParam('website'))) { // website level
+    $website_id = Mage::getModel('core/website')->load($code)->getId();
+    $store_id = Mage::app()->getWebsite($website_id)->getDefaultStore()->getId();
+} else { // default level
+    $store_id = 0;
+}
+?>
+<script type="text/javascript">
+    function verify(){
+
+        var eid = $('billmate_credentials_eid').value;
+        var secret = $('billmate_credentials_secret').value;
+        new Ajax.Request('<?php echo $this->getAjaxCheckUrl().'store_id='.$store_id ?>',{
+            method: 'post',
+            parameters: {
+                eid: eid,
+                secret: secret
+            },
+            onSuccess: function(transport){
+                if(transport.responseText){
+                    var response = transport.responseText.evalJSON();
+                    if(response.success){
+                        if($('error'))
+                            $('error').remove();
+                        if($('verified'))
+                            $('verified').remove();
+                        $('billmatecommon_verify').insert({after:'<h3 id="verified" style="color:green;"><?php echo Mage::helper('billmatecommon')->__('Verified'); ?></h3>'})
+
+                    } else {
+                        if($('verified'))
+                            $('verified').remove();
+                        if($('error'))
+                            $('error').remove();
+                        $('billmatecommon_verify').insert({after:'<h3 id="error" style="color:red;"><?php echo Mage::helper('billmatecommon')->__('Invalid credentials'); ?></h3>'})
+
+                    }
+
+                }
+            }
+        })
+    }
+</script>
+
+<?php echo $this->getButtonHtml(); ?>
