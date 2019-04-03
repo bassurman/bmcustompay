@@ -39,10 +39,8 @@ class Billmate_CustomPay_Block_Invoice_Form extends Billmate_CustomPay_Block_For
                 ->load($this->getCustomerSession()->getId())
                 ->getEmail();
         } else {
-            $email = $this->getCustomerSession()
-                ->getQuote()
-                ->getBillingAddress()
-                ->getEmail();
+            $email = Mage::getSingleton('checkout/session')
+                ->getQuote()->getEmail();
         }
         return $email;
     }

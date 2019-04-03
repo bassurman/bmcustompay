@@ -1,8 +1,9 @@
-<?php $_code=$this->getMethodCode();
-$lang = explode('_',Mage::app()->getLocale()->getLocaleCode());
+<?php
+$_code=$this->getMethodCode();
+$methodLogo = $this->getMethodLogo();
 ?>
 <ul class="form-list" id="payment_form_<?php echo $_code ?>" style="display:none;">
     <li>
-        <img src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) ?>/billmate/images/<?php echo $lang[0] == 'sv' ? $lang[0] : 'en'; ?>/bankpay.png" />
+        <img src="<?php echo $methodLogo ?>" />
     </li>
 </ul>

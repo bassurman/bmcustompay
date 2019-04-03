@@ -11,24 +11,24 @@ class Billmate_CustomPay_Adminhtml_BillmatepartpaymentController extends Mage_Ad
 
     public function updateplansAction()
     {
-        $collection = Mage::getModel('partpayment/pclass')->getCollection();
+        $collection = Mage::getModel('billmatecustompay/pclass')->getCollection();
         $store = $this->getRequest()->getParam('store_id');
         $collection->addFieldToFilter('store_id',$store);
         foreach( $collection as $item ){
             $item->delete();
         }
 
-        $countries = explode(',',Mage::getStoreConfig('payment/billmatepartpayment/countries'));
+        $countries = explode(',',Mage::getStoreConfig('payment/bmcustom_partpayment/countries'));
         $lang = explode('_',Mage::getStoreConfig('general/locale/code',$store));
 
-        $gateway = Mage::helper("partpayment");
+        $gateway = Mage::helper("billmatecustompay/methods");
 
         foreach($countries as $country) {
             $gateway->savePclasses($country, $lang[0], $store);
         }
 
-        $pclass = Mage::getModel('partpayment/pclass')->getCollection();
-        $pclass->addFieldToFilter('store_id',Mage::helper('partpayment')->getStoreIdForConfig());
+        $pclass = Mage::getModel('billmatecustompay/pclass')->getCollection();
+        $pclass->addFieldToFilter('store_id',$gateway->getStoreIdForConfig());
 
         if( $pclass->count() > 0 ){
             $html = '<div class="grid"><table border="0" class="data"><tr class="headings"><th>PClassid</th><th>Type</th><th>Description</th><th>Months</th><th>Interest Rate</th><th>Invoice Fee</th><th>Start Fee</th><th>Min Amount</th><th>Max Amount</th><th>Expire</th><th>Country</th></tr>';

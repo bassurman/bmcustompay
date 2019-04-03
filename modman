@@ -6,3 +6,5 @@ app/etc/modules/*														app/etc/modules/
 skin/frontend/base/default/css/bmcustompay 								skin/frontend/base/default/css/bmcustompay/
 app/design/adminhtml/default/default/layout/*							app/design/adminhtml/default/default/layout/
 app/design/adminhtml/default/default/template/bmcustompay				app/design/adminhtml/default/default/template/bmcustompay/
+skin/frontend/base/default/js/*									skin/frontend/base/default/js/
+skin/frontend/base/default/css/*								skin/frontend/base/default/css/

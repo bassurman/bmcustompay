@@ -110,6 +110,16 @@
                 <max_amount>99999</max_amount>
                 <order_status>pending</order_status>
             </bmcustom_bankpay>
+            <bmcustom_partpayment>
+                <model>billmatecustompay/methods_partpayment</model>
+                <title>Billmate Partpayment</title>
+                <active>0</active>
+                <order_status>pending</order_status>
+                <countries>SE,NL,DE</countries>
+                <min_amount>0</min_amount>
+                <max_amount>99999</max_amount>
+                <payment_action>authorize</payment_action>
+            </bmcustom_partpayment>
         </payment>
         <payment_action>authorize</payment_action>
     </default>
@@ -124,6 +134,16 @@
             </modules>
         </translate>
     </adminhtml>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules><Billmate_CustomPay after="Mage_Adminhtml">Billmate_CustomPay</Billmate_CustomPay></modules>
+
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
     <frontend>
         <translate>
             <modules>

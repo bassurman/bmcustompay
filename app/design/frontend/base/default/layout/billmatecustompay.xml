@@ -6,9 +6,10 @@
                 <type>skin_css</type>
                 <name>css/bmcustompay/custompay.css</name>
             </action>
-            <block type="core/template" template="billmatecustompay/checkout/getaddress.phtml"/>
+            <block type="core/template" template="billmatecustompay/checkout/billing/getaddress.phtml"/>
         </reference>
         <block type="core/template" template="billmatecustompay/checkout/billmatescript.phtml"/>
+
         <reference name="checkout.onepage.payment.additional">
             <block type="core/text" name="billmate.additional.div">
                 <action method="setText">
