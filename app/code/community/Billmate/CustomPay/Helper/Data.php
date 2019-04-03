@@ -5,6 +5,8 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
 
     const DEFAULT_PATH_CODE = 'en';
 
+    const SHOW_PNO_CONFIG_PATH = 'payment/bm_connnection/show_pno_form';
+
     /**
      * @var array
      */
@@ -34,13 +36,21 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * @return bool
+     */
+    public function isShowPnoForm()
+    {
+        return  (bool)$this->getConfigValue(self::SHOW_PNO_CONFIG_PATH);
+    }
+
+    /**
      * @param $paymentCode
      *
      * @return bool
      */
     public function isActivePayment($paymentCode)
     {
-        return  (bool)Mage::getStoreConfig('payment/' . $paymentCode . '/active') ;
+        return  (bool)$this->getConfigValue('payment/' . $paymentCode . '/active') ;
     }
 
     /**
@@ -90,5 +100,10 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         return $store_id;
+    }
+
+    protected function getConfigValue($path)
+    {
+        return Mage::getStoreConfig($path);
     }
 }

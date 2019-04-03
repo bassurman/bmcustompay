@@ -72,6 +72,10 @@
     </global>
     <default>
         <payment>
+            <bm_connnection>
+                <show_pno_form>1</show_pno_form>
+                <customcss>0</customcss>
+            </bm_connnection>
             <bmcustom_invoice>
                 <model>billmatecustompay/methods_invoice</model>
                 <countries>SE,DE,NL</countries>

@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <layout version="0.1.0">
     <checkout_onepage_index>
+        <update handle="getaddress_pno_form" />
         <reference name="head">
             <action method="addItem">
                 <type>skin_css</type>
                 <name>css/bmcustompay/custompay.css</name>
             </action>
-            <block type="core/template" template="billmatecustompay/checkout/billing/getaddress.phtml"/>
         </reference>
         <block type="core/template" template="billmatecustompay/checkout/billmatescript.phtml"/>
 
@@ -22,6 +22,24 @@
             </block>
         </reference>
     </checkout_onepage_index>
+
+    <getaddress_pno_form>
+        <reference name="head">
+            <block type="billmatecustompay/checkout_PnoAddress"
+                   name="bm_pno_address_form"
+                   template="billmatecustompay/checkout/billing/getaddress.phtml">
+                <block type="core/template" name="default_pno_form"
+                       template="billmatecustompay/checkout/billing/getaddress/form/default.phtml"/>
+                <block type="core/template" name="firecheckout_pno_form"
+                   template="billmatecustompay/checkout/billing/getaddress/form/firecheckout.phtml"/>
+                <block type="core/template" name="streamcheckout_pno_form"
+                   template="billmatecustompay/checkout/billing/getaddress/form/streamcheckout.phtml"/>
+                <block type="core/template" name="onestepcheckout_pno_form"
+                   template="billmatecustompay/checkout/billing/getaddress/form/onestepcheckout.phtml"/>
+            </block>
+        </reference>
+    </getaddress_pno_form>
+
     <billmate_update_address>
         <!-- Billmate_Checkout -->
         <remove name="right"/>
@@ -50,7 +68,7 @@
                 <type>skin_css</type>
                 <name>css/billmatestyle.css</name>
             </action>
-            <action method="addItem" ifconfig="billmate/settings/customcss">
+            <action method="addItem" ifconfig="payment/bm_connnection/customcss">
                 <type>skin_css</type>
                 <name>css/billmatestyle-custom.css</name>
             </action>
@@ -91,9 +109,7 @@
         </reference>
     </checkout_onepage_paymentmethod>
     <onestepcheckout_index_index>
-        <reference name="head">
-            <block type="core/template" template="billmatecustompay/checkout/getaddress.phtml"/>
-        </reference>
+        <update handle="getaddress_pno_form" />
         <reference name="before_body_end">
             <block type="core/text" name="billmate.additional.div">
                 <action method="setText">
@@ -108,8 +124,8 @@
     </onestepcheckout_index_index>
 
     <streamcheckout_index_index>
+        <update handle="getaddress_pno_form" />
         <reference name="head">
-            <block type="core/template" template="billmatecustompay/checkout/getaddress.phtml"/>
             <action method="removeItem" ifconfig="streamcheckout/general/enabled"><type>skin_css</type><name>css/billmatestyle.css</name></action>
             <action method="addItem" ifconfig="streamcheckout/general/enabled">
                 <type>skin_css</type>
@@ -136,9 +152,8 @@
                 <type>skin_css</type>
                 <name>css/billmatestyle-fc.css</name>
             </action>
-            <block type="core/template" template="billmatecustompay/checkout/getaddress.phtml"/>
         </reference>
-
+        <update handle="getaddress_pno_form" />
     </firecheckout_index_index>
 
     <sales_order_print>
