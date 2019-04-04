@@ -140,7 +140,7 @@
                 </bmcustom_invoice>
                 <bmcustom_card translate="label" module="billmatecustompay">
                     <label>Billmate Cardpay</label>
-                    <sort_order>20</sort_order>
+                    <sort_order>19</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_store>1</show_in_store>
                     <show_in_website>1</show_in_website>
@@ -224,7 +224,7 @@
                 </bmcustom_card>
                 <bmcustom_bankpay translate="label" module="billmatecustompay">
                     <label>Billmate Bank</label>
-                    <sort_order>25</sort_order>
+                    <sort_order>20</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_store>1</show_in_store>
                     <show_in_website>1</show_in_website>
@@ -306,7 +306,7 @@
                 </bmcustom_bankpay>
                 <bmcustom_partpayment translate="label" module="billmatecustompay">
                     <label>Billmate Partpayment</label>
-                    <sort_order>27</sort_order>
+                    <sort_order>21</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_store>1</show_in_store>
                     <show_in_website>1</show_in_website>

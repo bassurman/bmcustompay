@@ -66,6 +66,16 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * @param $paymentCode
+     *
+     * @return mixed
+     */
+    public function getDefaultOrderStatus($paymentCode)
+    {
+        return $this->getConfigValue('payment/' . $paymentCode . '/order_status');
+    }
+
+    /**
      * @param $path
      *
      * @return mixed

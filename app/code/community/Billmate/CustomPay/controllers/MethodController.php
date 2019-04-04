@@ -4,7 +4,7 @@ class Billmate_CustomPay_MethodController extends Mage_Core_Controller_Front_Act
 {
     public function updateaddressAction()
     {
-        if ($this->getRequest()->isPost()){
+        if ($this->getRequest()->isPost()) {
             $gateway = Mage::getSingleton('billmatecustompay/gateway_invoice');
             $gateway->init(true);
 

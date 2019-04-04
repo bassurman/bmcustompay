@@ -3,9 +3,14 @@
 abstract class Billmate_CustomPay_Controller_Methods extends Mage_Core_Controller_Front_Action
 {
     /**
-     * @var Mage_Core_Helper_Abstract
+     * @var Billmate_CustomPay_Helper_Data
      */
     protected $helper;
+
+    /**
+     * @var Billmate_CustomPay_Helper_Methods
+     */
+    protected $methodsHelper;
 
     /**
      * Billmate_CustomPay_Controller_Methods constructor.
@@ -20,6 +25,7 @@ abstract class Billmate_CustomPay_Controller_Methods extends Mage_Core_Controlle
         array $invokeArgs = array()
     ) {
         $this->helper = Mage::helper('billmatecustompay');
+        $this->methodsHelper = Mage::helper('billmatecustompay/methods');
         parent::__construct($request, $response, $invokeArgs);
     }
 
@@ -54,10 +60,34 @@ abstract class Billmate_CustomPay_Controller_Methods extends Mage_Core_Controlle
     }
 
     /**
+     * @return Mage_Core_Helper_Abstract
+     */
+    protected function getMethodsHelper()
+    {
+        return $this->methodsHelper;
+    }
+
+    /**
      * @return BillMate
      */
     public function getBmConnection()
     {
         return $this->getHelper()->getBillmate();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefOrderStatus()
+    {
+        return $this->getMethodsHelper()->getDefaultOrderStatus(static::PAYMENT_METHOD_CODE);
+    }
+
+    /**
+     * @return Mage_Core_Model_Abstract
+     */
+    public function getCheckoutSession()
+    {
+        return Mage::getSingleton('checkout/session');
     }
 }
