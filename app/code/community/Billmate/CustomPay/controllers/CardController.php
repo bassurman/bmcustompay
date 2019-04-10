@@ -12,74 +12,7 @@ class Billmate_CustomPay_CardController extends Billmate_CustomPay_Controller_In
 
     public function callbackAction()
     {
-        $quoteId = $this->getRequest()->getParam('billmate_quote_id');
-
-        $bmRequestData = $this->getBmRequestData();
-        $bmResponseData = $this->getBmConnection()->verify_hash($bmRequestData);
-        try {
-
-            if (isset($bmResponseData['code'])) {
-                $this->getHelper()->addLog($bmResponseData);
-                throw new Exception($bmResponseData['message']);
-            }
-
-            $quote = $this->getActiveQuote($quoteId);
-            $messageModel = $this->getMethodMessageModel();
-            $orderModel = $this->getCheckoutOrderModel();
-            switch (strtolower($bmResponseData['status'])) {
-                case 'pending':
-                    $order = $orderModel->placeOrder($quote);
-                    if(!$order) {
-                        throw new Exception(
-                            $this->getHelper()->__($this->getMethodMessageModel()->getFailedMessage())
-                        );
-                    }
-                    if ($order->getStatus() != $this->getDefOrderStatus()) {
-                        $orderModel->addComment(
-                            $this->getHelper()->__(
-                                'Order processing completed <br/>Billmate status: s% <br/> Transaction ID: s%',
-                                $bmResponseData['status'],
-                                $bmResponseData['number']
-                            ),
-                            'pending_payment'
-                        );
-                        $this->getCheckoutOrderModel()->sendNewOrderMail();
-                    }
-                    break;
-                case 'paid':
-                    $order = $orderModel->placeOrder($quote);
-                    $orderModel->addComment(
-                        $this->getHelper()->__(
-                            'Order processing completed <br/>Billmate status: s% <br/> Transaction ID: s%',
-                            $bmResponseData['status'],
-                            $bmResponseData['number']
-                        ),
-                        $this->getDefOrderStatus()
-                    );
-
-                    if ($order->getStatus() != $this->getDefOrderStatus()) {
-                        $orderModel->addTransaction($bmResponseData);
-                        $orderModel->sendNewOrderMail();
-                    }
-                    break;
-                case 'cancelled':
-                    throw new Exception(
-                        $this->getHelper()->__($messageModel->getCancelMessage())
-                    );
-                    break;
-                case 'failed':
-                    throw new Exception(
-                        $this->getHelper()->__($messageModel->getFailedMessage())
-                    );
-                    break;
-            }
-        } catch (Exception $e) {
-            $this->getCoreSession()->addError($e->getMessage());
-            $this->_redirect($this->getCheckoutUrl());
-            return;
-        }
-
-        $this->_redirect('checkout/onepage/success',array('_secure' => true));
+        return $this->doCallbackProcess();
     }
 
     public function acceptAction()

@@ -38,6 +38,8 @@ class Billmate_CustomPay_Model_Checkout_Order extends Varien_Object
         $orderModel = Mage::getModel('sales/order');
         $orderModel->load($quote->getId(), 'quote_id');
         if ($orderModel->getId()) {
+            $this->setQuote($quote);
+            $this->setOrder($orderModel);
             return $orderModel;
         }
 
