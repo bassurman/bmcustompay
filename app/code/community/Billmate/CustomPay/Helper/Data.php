@@ -7,6 +7,8 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
 
     const SHOW_PNO_CONFIG_PATH = 'payment/bm_connnection/show_pno_form';
 
+    const BM_PAYMENT_LOG_FILE = 'bm_custom_payment.log';
+
     /**
      * @var array
      */
@@ -66,6 +68,16 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * @return bool
+     */
+    public function useEmailQueue()
+    {
+        $magentoVersion = Mage::getVersion();
+        $isEE = Mage::helper('core')->isModuleEnabled('Enterprise_Enterprise');
+        return version_compare($magentoVersion, '1.9.1', '>=') && !$isEE;
+    }
+
+    /**
      * @return string
      */
     protected function getLogoLangPath()
@@ -85,6 +97,11 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
         return $this->_svLocales;
     }
 
+    public function addLog($message)
+    {
+        Mage::log($message,0,self::BM_PAYMENT_LOG_FILE);
+    }
+
     /**
      * @return int
      */
@@ -102,6 +119,11 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
         return $store_id;
     }
 
+    /**
+     * @param $path
+     *
+     * @return mixed
+     */
     protected function getConfigValue($path)
     {
         return Mage::getStoreConfig($path);

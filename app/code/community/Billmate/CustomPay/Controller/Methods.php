@@ -13,6 +13,11 @@ abstract class Billmate_CustomPay_Controller_Methods extends Mage_Core_Controlle
     protected $methodsHelper;
 
     /**
+     * @var Billmate_CustomPay_Model_Checkout_Order
+     */
+    protected $checkoutOrder;
+
+    /**
      * Billmate_CustomPay_Controller_Methods constructor.
      *
      * @param Zend_Controller_Request_Abstract  $request
@@ -26,6 +31,7 @@ abstract class Billmate_CustomPay_Controller_Methods extends Mage_Core_Controlle
     ) {
         $this->helper = Mage::helper('billmatecustompay');
         $this->methodsHelper = Mage::helper('billmatecustompay/methods');
+        $this->checkoutOrder = Mage::getModel('billmatecustompay/checkout_order');
         parent::__construct($request, $response, $invokeArgs);
     }
 
@@ -52,7 +58,7 @@ abstract class Billmate_CustomPay_Controller_Methods extends Mage_Core_Controlle
     }
 
     /**
-     * @return Mage_Core_Helper_Abstract
+     * @return Billmate_CustomPay_Helper_Data
      */
     protected function getHelper()
     {
@@ -60,7 +66,7 @@ abstract class Billmate_CustomPay_Controller_Methods extends Mage_Core_Controlle
     }
 
     /**
-     * @return Mage_Core_Helper_Abstract
+     * @return Billmate_CustomPay_Helper_Methods
      */
     protected function getMethodsHelper()
     {
@@ -83,11 +89,28 @@ abstract class Billmate_CustomPay_Controller_Methods extends Mage_Core_Controlle
         return $this->getMethodsHelper()->getDefaultOrderStatus(static::PAYMENT_METHOD_CODE);
     }
 
+
     /**
-     * @return Mage_Core_Model_Abstract
+     * @return Billmate_CustomPay_Model_Methods_Message_Bmcustom
+     */
+    public function getMethodMessageModel()
+    {
+        return Mage::getSingleton('billmatecustompay/methods_message_' . static::PAYMENT_METHOD_CODE);
+    }
+
+    /**
+     * @return Mage_Checkout_Model_Session
      */
     public function getCheckoutSession()
     {
         return Mage::getSingleton('checkout/session');
+    }
+
+    /**
+     * @return Billmate_CustomPay_Model_Checkout_Order|false|Mage_Core_Model_Abstract
+     */
+    public function getCheckoutOrderModel()
+    {
+        return $this->checkoutOrder;
     }
 }

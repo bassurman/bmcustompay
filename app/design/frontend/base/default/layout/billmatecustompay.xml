@@ -51,7 +51,7 @@
                template="billmatecustompay/checkout/changeaddress.phtml"
         />
     </billmate_update_address>
-    <billmate_complete_checkout>
+    <billmatecustompay_complete_checkout>
         <!-- Billmate_Checkout -->
         <remove name="right"/>
         <remove name="left"/>
@@ -61,7 +61,7 @@
                output="toHtml"
                template="billmatecustompay/checkout/complete-checkout.phtml"
         />
-    </billmate_complete_checkout>
+    </billmatecustompay_complete_checkout>
     <default>
         <reference name="head">
             <action method="addItem">
@@ -95,6 +95,7 @@
             <block type="core/template" template="billmatecustompay/checkout/billmatescript.phtml"/>
         </reference>
     </default>
+
     <checkout_onepage_paymentmethod>
         <reference name="checkout.onepage.payment.methods.additional">
             <block type="core/text" name="billmate.additional.div">
