@@ -51,6 +51,18 @@
                template="billmatecustompay/checkout/changeaddress.phtml"
         />
     </billmate_update_address>
+
+    <billmate_complete_checkout>
+        <!-- Billmate_Checkout -->
+        <remove name="right"/>
+        <remove name="left"/>
+
+        <block type="billmatecustompay/invoice_changeAddress"
+               name="root"
+               output="toHtml"
+               template="billmatecustompay/checkout/success/update/address.phtml"
+        />
+    </billmate_complete_checkout>
     <billmatecustompay_complete_checkout>
         <!-- Billmate_Checkout -->
         <remove name="right"/>
