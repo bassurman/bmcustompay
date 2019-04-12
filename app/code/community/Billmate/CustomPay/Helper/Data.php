@@ -97,9 +97,12 @@ class Billmate_CustomPay_Helper_Data extends Mage_Core_Helper_Abstract
         return $this->_svLocales;
     }
 
+    /**
+     * @param $message
+     */
     public function addLog($message)
     {
-        Mage::log($message,0,self::BM_PAYMENT_LOG_FILE);
+        $this->connectionHelper->addLog($message, self::BM_PAYMENT_LOG_FILE);
     }
 
     /**
