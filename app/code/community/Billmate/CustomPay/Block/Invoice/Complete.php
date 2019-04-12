@@ -19,6 +19,14 @@
 class Billmate_CustomPay_Block_Invoice_Complete extends Mage_Payment_Block_Form
 {
     /**
+     * @var array
+     */
+    protected $addressGroups = [
+        'billing',
+        'shipping',
+    ];
+
+    /**
      * @return Billmate_CustomPay_Model_Gateway_Invoice
      */
     public function getGatewayPayment()
@@ -26,8 +34,59 @@ class Billmate_CustomPay_Block_Invoice_Complete extends Mage_Payment_Block_Form
         return Mage::getSingleton('billmatecustompay/gateway_invoice');
     }
 
-    public function getAddress()
+    /**
+     * @return array
+     */
+    public function getAddressFields()
     {
+        $addressFields = [];
+        $gateway = $this->getGatewayPayment();
 
+        $addressFields['street][']  = $gateway->getStreet();
+        $addressFields['city'] = $gateway->getCity();
+        $addressFields['postcode']  = $gateway->getPostcode();
+        $addressFields['country_id'] = $gateway->getCountry();
+
+        if ($gateway->getFirstname()) {
+            $addressFields['firstname'] = $gateway->getFirstname();
+        }
+
+        if ($gateway->getLastname()) {
+            $addressFields['lastname'] = $gateway->getLastname();
+        }
+
+        if ($gateway->getCompany()) {
+            $addressFields['company'] = $gateway->getCompany();
+        }
+
+        if ($this->isCustomerLoggedIn()) {
+            $addressFields['telephone'] = $gateway->getTelephone();
+        }
+
+        return $addressFields;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAddressGroups()
+    {
+        return $this->addressGroups;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEnabledFirecheckout()
+    {
+        return (bool)Mage::getStoreConfig('firecheckout/general/enabled');
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCustomerLoggedIn()
+    {
+        return Mage::getSingleton('customer/session')->isLoggedIn();
     }
 }

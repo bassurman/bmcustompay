@@ -240,22 +240,12 @@ function AddEvent(html_element, event_name, event_function)
 } 
 var modalWin = null;
 function changeBillEvent(){
-
-	if( oldurl == null && typeof payment != 'undefined' && typeof billmateindexurl != 'undefined'){
-
+	if (oldurl == null && typeof payment != 'undefined' && typeof billmateindexurl != 'undefined') {
 		oldurl = payment.saveUrl;
-		/*payment.saveUrl = billmateindexurl;
-		payment.onComplete = function(res){
-			checkout.setLoadWaiting(Billmate.getStep());
-			eval(res.responseText);
-		}*/
 	}
-//	if( typeof FireCheckout != 'undefined' && fireoldurl == null ){
-//		fireoldurl = checkout.urls.save;
-//	}
 }
-function updateAddress(){
-	if( typeof FireCheckout != 'undefined' || typeof Lightcheckout != 'undefined' || typeof checkout.form != 'undefined' || typeof checkoutForm!= 'undefined'){
+function updateAddress() {
+	if (typeof FireCheckout != 'undefined' || typeof Lightcheckout != 'undefined' || typeof checkout.form != 'undefined' || typeof checkoutForm!= 'undefined') {
 		if( typeof checkout.form == 'undefined'){
 			params = Form.serialize(checkoutForm.form.id);
 		} else if(typeof checkout.form != 'undefined'){
@@ -370,16 +360,6 @@ function paymentSave(){
 	}
 	if(typeof checkout.form == 'undefined'){
 		checkout.setLoadWaiting(Billmate.getStep());
-		/*payment.saveUrl = oldurl;
-		payment.onComplete = function(){
-			checkout.setLoadWaiting(Billmate.getStep());
-			payment.saveUrl = billmateindexurl;
-			payment.onComplete = function(res){
-				checkout.setLoadWaiting(false);
-				eval(res.responseText);
-			}
-		};
-		payment.save();*/
         review.save();
 	}else{
 		if( typeof FireCheckout != 'undefined' || typeof OPC != 'undefined' ){
@@ -448,11 +428,6 @@ AddEvent(window, 'load', function(){
 
     }
 	modalWin = new CreateModalPopUpObject();
-	/*if( $$('#checkout-review-submit .btn-checkout').length > 0 ){
-		$checkoutbtn = $$('#checkout-review-submit .btn-checkout')[0].onclick;
-		$$('#checkout-review-submit .btn-checkout')[0].onclick = function(){ checkAddress(); return false;};
-	}*/
-
 });
 function ShowDivInCenter(divId)
 {
