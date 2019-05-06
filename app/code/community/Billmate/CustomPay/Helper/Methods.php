@@ -249,7 +249,10 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
     public function checkPclasses($frondend = false)
     {
         $collection = Mage::getModel('billmatecustompay/pclass')->getCollection();
-        $collection->addFieldToFilter('store_id',($frondend) ? Mage::app()->getStore()->getId() : $this->getStoreIdForConfig());
+        $collection->addFieldToFilter(
+            'store_id',
+            ($frondend) ? Mage::app()->getStore()->getId() : $this->getStoreIdForConfig()
+        );
         $first = $collection->getFirstItem();
 
         if($collection->getSize() == 0 || (strtotime($first->getCreated() <= strtotime('-1 week')))){
@@ -262,8 +265,8 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
             }
 
             // Fetch new Pclasses
-            $countries = explode(',',Mage::getStoreConfig('payment/billmatepartpayment/countries'));
-            $lang = explode('_',Mage::getStoreConfig('general/locale/code'));
+            $countries = $this->getMethodCountries('bmcustom_partpayment');
+            $lang = explode('_', $this->getConfigValue('general/locale/code'));
 
             foreach ($countries as $country) {
                 $this->savePclasses($country, $lang[0]);
@@ -302,7 +305,7 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
     public function savePclasses($countrycode, $lang, $store = false)
     {
         $store_id = $store ? $store : Mage::app()->getStore()->getId();
-        $billmate = $this->getBillmate();
+        $billmate = $this->getConnectionHelper()->getBmProvider();
 
         switch ($countrycode) {
             // Sweden
@@ -337,7 +340,7 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
             "language"=>$lang,//Swedish
         );
 
-        $eid = (int)Mage::getStoreConfig('billmate/credentials/eid');
+        $eid = $this->connectionHelper->getConnectionId();
         $data = $billmate->getPaymentplans($additionalinfo);
         if (!isset($data['code'])) {
 
@@ -574,4 +577,14 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
     {
         return Mage::getSingleton('checkout/session')->getQuote();
     }
+
+    /**
+     * @return Billmate_Connection_Helper_Data
+     */
+    public function getConnectionHelper()
+    {
+        return $this->connectionHelper;
+    }
+
+
 }
