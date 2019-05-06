@@ -68,7 +68,7 @@
                             $('getaddress_failure').remove();
                         }
                         $('person_number').addClassName('validation-failed');
-                        $('billmategetaddress').insert({after:'<div class="validation-advice" id="getaddress_failure">'+result.message+'</div>'});
+                        $('person_number').insert({after:'<div class="validation-advice" id="getaddress_failure">'+result.message+'</div>'});
                     }
                 }
             })

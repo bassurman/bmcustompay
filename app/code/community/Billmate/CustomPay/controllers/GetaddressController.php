@@ -8,16 +8,17 @@ class Billmate_CustomPay_GetaddressController extends Billmate_CustomPay_Control
         $pno = $this->getRequest()->getParam('billmate_pno');
         Mage::getSingleton('checkout/session')->setBillmatePno($pno);
 
-        $billmateConnection = $this->getBmConnection();
-        $bmResponse = $billmateConnection->getAddress(
+        $bmConnection = $this->getBmConnection();
+        $bmResponse = $bmConnection->getAddress(
             ['pno' => $pno]
         );
 
         $status = (!isset($bmResponse['code'])) ? true : false;
-        $result['success'] = $status;
-        $result['message'] = (isset($bmResponse['code'])) ? utf8_encode($bmResponse['message']) : '';
-        $result['data'] = $bmResponse;
+        $response['success'] = $status;
+        $response['message'] = (isset($bmResponse['code'])) ? utf8_encode($bmResponse['message']) : '';
+        $response['data'] = $bmResponse;
+        $response['data']['message'] = $response['message'];
 
-        $this->getResponse()->setBody(Zend_Json::encode($result));
+        $this->getResponse()->setBody(Zend_Json::encode($response));
     }
 }

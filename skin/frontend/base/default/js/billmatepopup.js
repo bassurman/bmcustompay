@@ -325,7 +325,7 @@ function checkAddress(psn){
         if ($('getaddress_failure'))
             $('getaddress_failure').remove();
         $('person_number').addClassName('validation-failed');
-        $('billmategetaddress').insert({after: '<div class="validation-advice" id="getaddress_failure">' + PNO_ERROR + '</div>'})
+        $('person_number').insert({after: '<div class="validation-advice" id="getaddress_failure">' + PNO_ERROR + '</div>'})
         checkout.setLoadWaiting(false);
 
     }else if(!$('person_number') && $(selectedmethod+'_pno').value == ''){
