@@ -89,7 +89,9 @@ class Billmate_CustomPay_Model_Gateway extends Varien_Object
         return [
             'method'       => static::METHOD_CODE,
             'currency'     => $currentCurrencyCode,
-            'paymentplanid' => $quote->getPayment()->getData('bmcustom_partpayment_pclass'),
+            'paymentplanid' => $quote->getPayment()->getData(
+                Billmate_CustomPay_Model_Methods_PartPayment::PARTIAL_PAYMENT_CODE
+            ),
             'country'      => $storeCountryIso2,
             'orderid' => ($quote->getReservedOrderId()) ? $quote->getReservedOrderId() : (string)time(),
             'autoactivate' => 0,

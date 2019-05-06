@@ -331,4 +331,12 @@ abstract class Billmate_CustomPay_Model_Methods extends Mage_Payment_Model_Metho
         );
         return $bmRequestData;
     }
+
+    /**
+     * @return mixed
+     */
+    protected function isBmCheckoutComplete()
+    {
+        return Mage::registry('billmate_checkout_complete');
+    }
 }

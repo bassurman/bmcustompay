@@ -17,10 +17,7 @@ class Billmate_CustomPay_Block_Partpayment_Form extends Billmate_CustomPay_Block
      */
     public function termsx()
     {
-        $total = Mage::getSingleTon('checkout/session')
-            ->getQuote()
-            ->getShippingAddress()
-            ->getGrandTotal();
+        $total = Mage::getSingleTon('checkout/session')->getQuote()->getShippingAddress()->getGrandTotal();
 
         return Mage::helper('billmatecustompay/methods')->getPlclass($total);
     }

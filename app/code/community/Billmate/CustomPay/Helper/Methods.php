@@ -249,12 +249,12 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
     public function checkPclasses($frondend = false)
     {
         $collection = Mage::getModel('billmatecustompay/pclass')->getCollection();
-        $collection->addFieldToFilter('store_id',($frondend) ? Mage::app()->getStore()->getId() :$this->getStoreIdForConfig());
+        $collection->addFieldToFilter('store_id',($frondend) ? Mage::app()->getStore()->getId() : $this->getStoreIdForConfig());
         $first = $collection->getFirstItem();
 
         if($collection->getSize() == 0 || (strtotime($first->getCreated() <= strtotime('-1 week')))){
             $collectionPclass = Mage::getModel('billmatecustompay/pclass')->getCollection();
-            $collectionPclass->addFieldToFilter('store_id',($frondend) ? Mage::app()->getStore()->getId() :$this->getStoreIdForConfig());
+            $collectionPclass->addFieldToFilter('store_id',($frondend) ? Mage::app()->getStore()->getId() : $this->getStoreIdForConfig());
             if ($collection->getSize() > 0) {
                 foreach ($collectionPclass as $row) {
                     $row->delete();
@@ -262,7 +262,7 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
             }
 
             // Fetch new Pclasses
-            $countries = explode(',',Mage::getStoreConfig('payment/bmcustom_partpayment/countries'));
+            $countries = explode(',',Mage::getStoreConfig('payment/billmatepartpayment/countries'));
             $lang = explode('_',Mage::getStoreConfig('general/locale/code'));
 
             foreach ($countries as $country) {
@@ -302,7 +302,7 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
     public function savePclasses($countrycode, $lang, $store = false)
     {
         $store_id = $store ? $store : Mage::app()->getStore()->getId();
-        $billmate = $this->connectionHelper->getBmProvider();
+        $billmate = $this->getBillmate();
 
         switch ($countrycode) {
             // Sweden
@@ -337,7 +337,7 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
             "language"=>$lang,//Swedish
         );
 
-        $eid = $this->connectionHelper->getConnectionId();
+        $eid = (int)Mage::getStoreConfig('billmate/credentials/eid');
         $data = $billmate->getPaymentplans($additionalinfo);
         if (!isset($data['code'])) {
 
@@ -371,39 +371,8 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
         $_directory = Mage::helper('directory');
 
         $payment_option = array();
-        $quote = Mage::getSingleTon('checkout/session')->getQuote();
-        $address = $quote->getShippingAddress();
-        $isoCode3 =  'SWE';//Mage::getModel('directory/country')->load($address->getCountryId())->getIso3Code();
-        $isoCode2 =  Mage::getModel('directory/country')->load($address->getCountryId())->getIso2Code();
-        $collection = Mage::getModel('billmatecustompay/pclass')
-            ->getCollection()
-            ->addFieldToFilter('country', $isoCode2 )
-            ->addFieldToFilter('store_id',Mage::app()->getStore()->getId());
-
-        if($collection->getSize() == 0) {
-            $collection = Mage::getModel('billmatecustompay/pclass')
-                ->getCollection()
-                ->addFieldToFilter('country', $isoCode2)
-                ->addFieldToFilter('store_id', 0);
-        }
-        // Maps countries to currencies
-        $country_to_currency = array(
-            'NOR' => 'NOK',
-            'SWE' => 'SEK',
-            'FIN' => 'EUR',
-            'DNK' => 'DKK',
-            'DEU' => 'EUR',
-            'NLD' => 'EUR'
-        );
-
-        $country_to_currency = array(
-            'NOR' => 'NOK',
-            'SWE' => 'SEK',
-            'FIN' => 'EUR',
-            'DNK' => 'DKK',
-            'DEU' => 'EUR',
-            'NLD' => 'EUR'
-        );
+        $isoCode3 =  'SWE';
+        $collection = $this->getPartialPlansCollection();
 
         foreach ($collection as $pclass) {
 
@@ -501,7 +470,7 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
             $payment_option_temp['pclass_id'] = $pclass->getPaymentplanid();
             $payment_option_temp['months'] = $pclass->getNbrofmonths();
             $payment_option_temp['description'] = $pclass->getDescription();
-            $payment_option[] = $payment_option_temp;
+            $payment_option[$payment_option_temp['pclass_id']] = $payment_option_temp;
         }
 
         return $payment_option;
@@ -512,28 +481,36 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
      *
      * @return string
      */
-    public function getLowPclass($total)
+    public function getLowPclass($amount, $selectedOption = null)
     {
+        $coreHelper = Mage::helper('core');
         $this->checkPclasses(true);
-        $payment_option = $this->getPlclass($total);
-        $status = true;
-        if (!$payment_option) {
-            $status = false;
+
+        $paymentOptions = $this->getPlclass($amount);
+
+        if (!$paymentOptions) {
+            return '';
         }
 
-        $sort_order = array();
+        $activeOption = current($paymentOptions);
 
-        foreach ($payment_option as $key => $value) {
-            $sort_order[$key] = $value['monthly_cost'];
+        if ($selectedOption && isset($paymentOptions[$selectedOption])) {
+            $activeOption = $paymentOptions[$selectedOption];
         }
 
-        array_multisort($sort_order, SORT_ASC, $payment_option);
-        $title = '';
-        if ($status) {
-            $currency = Mage::app()->getStore()->getCurrentCurrencyCode();
-            $price = round(Mage::helper('core')->currency($payment_option[0]['monthly_cost'], false, true),2);
-            $title = ' '.$this->__('from').' '.$price.' '.$currency.' / '. $this->__('month');
-        }
+        $currency = Mage::app()->getStore()->getCurrentCurrencyCode();
+        $price = $coreHelper->currency(
+            $activeOption['monthly_cost'],
+            false,
+            true
+        );
+
+        $title = $this->__(' %s from %s %s / month',
+            $activeOption['description'],
+            $price,
+            $currency
+        );
+
         return $title;
     }
 
@@ -548,5 +525,53 @@ class Billmate_CustomPay_Helper_Methods extends Mage_Core_Helper_Abstract
         $item['interestrate'] = $item['interestrate'] / 100;
         $item['minamount'] = $item['minamount'] / 100;
         $item['maxamount'] = $item['maxamount'] / 100;
+    }
+
+    public function getPartialPlansCollection()
+    {
+        $shippingAddress = $this->getCurrentShippingAddress();
+        $isoCode2 =  Mage::getModel('directory/country')->load(
+            $shippingAddress->getCountryId()
+        )->getIso2Code();
+
+        $collection = Mage::getModel('billmatecustompay/pclass')
+            ->getCollection()
+            ->addFieldToFilter('country', $isoCode2 )
+            ->addFieldToFilter('store_id',Mage::app()->getStore()->getId());
+
+        if($collection->getSize() == 0) {
+            $collection = Mage::getModel('billmatecustompay/pclass')
+                ->getCollection()
+                ->addFieldToFilter('country', $isoCode2)
+                ->addFieldToFilter('store_id', 0);
+        }
+        $collection->setOrder('nbrofmonths', 'ASC');
+        return $collection;
+    }
+
+    public function getCurrentShippingAddress()
+    {
+        $shippingAddress = $this->getQuote()->getShippingAddress();
+        if ($this->getCurrentOrder()) {
+            return $this->getCurrentOrder()->getShippingAddress();
+        }
+
+        return $shippingAddress;
+    }
+
+    /**
+     * @return Mage_Sales_Model_Order
+     */
+    public function getCurrentOrder()
+    {
+        return Mage::registry('current_order');
+    }
+
+    /**
+     * @return Mage_Sales_Model_Quote
+     */
+    public function getQuote()
+    {
+        return Mage::getSingleton('checkout/session')->getQuote();
     }
 }

@@ -1,6 +1,8 @@
 <?php  
 class Billmate_CustomPay_Model_Methods_PartPayment extends Billmate_CustomPay_Model_Methods
 {
+    const PARTIAL_PAYMENT_CODE = 'bmcustom_partpayment_pclass';
+
     const ALLOWED_CURRENCY_CODES = [
         'SEK'
     ];
@@ -106,8 +108,14 @@ class Billmate_CustomPay_Model_Methods_PartPayment extends Billmate_CustomPay_Mo
 	 	$address = $quote->getShippingAddress();
 	 	$title = '';
 	 	if ($address) {
-	        $total = $address->getGrandTotal();
-	        $title = $this->getHelper()->getLowPclass($total);
+            $selectedPClass = $this->getInfoInstance()->getAdditionalInformation(
+                self::PARTIAL_PAYMENT_CODE
+            );
+            $grandTotal = $address->getGrandTotal();
+            if ($this->getCurrentOrder()) {
+                $grandTotal = $this->getCurrentOrder()->getGrandTotal();
+            }
+            $title = $this->getHelper()->getLowPclass($grandTotal, $selectedPClass);
 	    }
 
 	    $preTitle = parent::getTitle();
@@ -186,5 +194,29 @@ class Billmate_CustomPay_Model_Methods_PartPayment extends Billmate_CustomPay_Mo
             Mage::throwException(Mage::helper('payment')->__('Missing phone number'));
         }
 
+        if (empty($paymentData[self::PARTIAL_PAYMENT_CODE])) {
+            Mage::throwException(Mage::helper('payment')->__('Missing partial type'));
+        }
+
+        $this->getInfoInstance()->setAdditionalInformation(
+            self::PARTIAL_PAYMENT_CODE,
+            $paymentData[self::PARTIAL_PAYMENT_CODE]
+        );
+    }
+
+    /**
+     * @return Mage_Sales_Model_Order
+     */
+    protected function getCurrentOrder()
+    {
+        return $this->getHelper()->getCurrentOrder();
+    }
+
+    /**
+     * @return Billmate_CustomPay_Helper_Methods
+     */
+    public function getHelper()
+    {
+        return Mage::helper('billmatecustompay/methods');
     }
 }

@@ -76,14 +76,6 @@ class Billmate_CustomPay_Model_Methods_Invoice extends Billmate_CustomPay_Model_
     }
 
     /**
-     * @return mixed
-     */
-    protected function isBmCheckoutComplete()
-    {
-        return Mage::registry('billmate_checkout_complete');
-    }
-
-    /**
      * @return string
      */
     public function getTitle()
