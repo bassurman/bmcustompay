@@ -1,6 +1,8 @@
 <?php
 class Billmate_CustomPay_Model_Gateway extends Varien_Object
 {
+    const BM_PAYMENT_LANG = 'sv';
+
     const METHOD_CODE = 1;
 
     /**
@@ -95,7 +97,7 @@ class Billmate_CustomPay_Model_Gateway extends Varien_Object
             'country'      => $storeCountryIso2,
             'orderid' => ($quote->getReservedOrderId()) ? $quote->getReservedOrderId() : (string)time(),
             'autoactivate' => 0,
-            'language'     => 'se',
+            'language'     => self::BM_PAYMENT_LANG,
             'logo' => (strlen(Mage::getStoreConfig('billmate/settings/logo')) > 0) ? Mage::getStoreConfig('billmate/settings/logo') : ''
         ];
     }
