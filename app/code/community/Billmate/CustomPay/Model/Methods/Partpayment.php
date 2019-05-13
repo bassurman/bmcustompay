@@ -1,5 +1,5 @@
 <?php  
-class Billmate_CustomPay_Model_Methods_PartPayment extends Billmate_CustomPay_Model_Methods
+class Billmate_CustomPay_Model_Methods_Partpayment extends Billmate_CustomPay_Model_Methods
 {
     const PARTIAL_PAYMENT_CODE = 'bmcustom_partpayment_pclass';
 
