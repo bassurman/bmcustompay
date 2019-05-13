@@ -111,11 +111,11 @@ class Billmate_CustomPay_Model_Methods_PartPayment extends Billmate_CustomPay_Mo
             $selectedPClass = $this->getInfoInstance()->getAdditionalInformation(
                 self::PARTIAL_PAYMENT_CODE
             );
-            $grandTotal = $address->getGrandTotal();
+            $subTotal = $address->getSubtotal();
             if ($this->getCurrentOrder()) {
-                $grandTotal = $this->getCurrentOrder()->getGrandTotal();
+                $subTotal = $this->getCurrentOrder()->getGrandTotal();
             }
-            $title = $this->getHelper()->getLowPclass($grandTotal, $selectedPClass);
+            $title = $this->getHelper()->getLowPclass($subTotal, $selectedPClass);
 	    }
 
 	    $preTitle = parent::getTitle();
